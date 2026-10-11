@@ -21,37 +21,44 @@ pub struct ElfImage {
 
 impl ElfImage {
     pub fn parse(bytes: Vec<u8>) -> Result<Self, String> {
-        let elf = Elf::parse(&bytes).map_err(|error| format!("ELF parse failed: {error}"))?;
-        if elf.header.e_machine != EM_AARCH64 {
-            return Err(format!(
-                "unsupported ELF machine: expected AArch64, got {}",
-                elf.header.e_machine
-            ));
-        }
-
-        let mut segments = Vec::new();
-        let mut image_base = u64::MAX;
-        for header in &elf.program_headers {
-            if header.p_type != PT_LOAD {
-                continue;
+        let (entry, image_base, segments) = {
+            let elf = Elf::parse(&bytes).map_err(|error| format!("ELF parse failed: {error}"))?;
+            if elf.header.e_machine != EM_AARCH64 {
+                return Err(format!(
+                    "unsupported ELF machine: expected AArch64, got {}",
+                    elf.header.e_machine
+                ));
             }
-            image_base = image_base.min(header.p_vaddr);
-            segments.push(LoadSegment {
-                virtual_address: header.p_vaddr,
-                memory_size: header.p_memsz,
-                file_size: header.p_filesz,
-                file_offset: header.p_offset,
-                flags: header.p_flags,
-            });
-        }
-        if segments.is_empty() {
-            return Err("ELF has no PT_LOAD segments".to_string());
-        }
+
+            let mut segments = Vec::new();
+            let mut image_base = u64::MAX;
+            for header in &elf.program_headers {
+                if header.p_type != PT_LOAD {
+                    continue;
+                }
+                image_base = image_base.min(header.p_vaddr);
+                segments.push(LoadSegment {
+                    virtual_address: header.p_vaddr,
+                    memory_size: header.p_memsz,
+                    file_size: header.p_filesz,
+                    file_offset: header.p_offset,
+                    flags: header.p_flags,
+                });
+            }
+            if segments.is_empty() {
+                return Err("ELF has no PT_LOAD segments".to_string());
+            }
+            (
+                elf.entry,
+                if image_base == u64::MAX { 0 } else { image_base },
+                segments,
+            )
+        };
 
         Ok(Self {
             bytes,
-            entry: elf.entry,
-            image_base: if image_base == u64::MAX { 0 } else { image_base },
+            entry,
+            image_base,
             segments,
         })
     }

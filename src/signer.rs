@@ -99,7 +99,7 @@ impl Emulator {
 
     pub fn install_syscall_hook(&mut self) -> Result<(), String> {
         self.unicorn
-            .add_code_hook(0, u64::MAX, |uc, address, _size, _user| {
+            .add_code_hook(0, u64::MAX, |uc, address, _size| {
                 let instruction = match uc.mem_read_as_vec(address, 4) {
                     Ok(bytes) => u32::from_le_bytes(bytes.try_into().unwrap_or([0; 4])),
                     Err(_) => 0,
@@ -109,6 +109,7 @@ impl Emulator {
                     let _ = number;
                 }
             })
+            .map(|_| ())
             .map_err(|error| format!("install syscall hook failed: {error}"))
     }
 
