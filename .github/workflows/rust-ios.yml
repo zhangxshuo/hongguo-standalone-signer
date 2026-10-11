@@ -1,0 +1,27 @@
+name: Build standalone signer for iOS
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust target
+        run: |
+          rustup target add aarch64-apple-ios
+
+      - name: Build static library
+        run: |
+          cargo build --release --target aarch64-apple-ios
+
+      - name: Upload static library
+        uses: actions/upload-artifact@v4
+        with:
+          name: hongguo-standalone-signer-ios
+          path: target/aarch64-apple-ios/release/libhongguo_standalone_signer.a
