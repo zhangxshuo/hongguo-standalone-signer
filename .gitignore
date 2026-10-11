@@ -1,4 +1,5 @@
 /target/
+/dist/
 *.dll
 *.exp
 *.lib
