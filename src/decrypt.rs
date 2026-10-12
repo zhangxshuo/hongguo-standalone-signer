@@ -175,6 +175,10 @@ fn strip_cenc_signaling(data: &mut [u8]) {
         (b"encv".as_slice(), b"hvc1".as_slice()),
         (b"enca".as_slice(), b"mp4a".as_slice()),
         (b"sinf".as_slice(), b"free".as_slice()),
+        (b"senc".as_slice(), b"free".as_slice()),
+        (b"saiz".as_slice(), b"free".as_slice()),
+        (b"saio".as_slice(), b"free".as_slice()),
+        (b"pssh".as_slice(), b"free".as_slice()),
     ] {
         let mut offset = 0usize;
         while let Some(position) = find_bytes(&data[offset..], from) {
