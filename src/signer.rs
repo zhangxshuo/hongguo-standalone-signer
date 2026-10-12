@@ -119,8 +119,14 @@ impl Emulator {
             .mem_map(STACK_BASE, STACK_SIZE, Prot::READ | Prot::WRITE)
             .map_err(|error| format!("map stack failed: {error}"))?;
         unicorn
+            .mem_write(STACK_BASE, &vec![0u8; STACK_SIZE as usize])
+            .map_err(|error| format!("clear stack failed: {error}"))?;
+        unicorn
             .mem_map(HEAP_BASE, HEAP_SIZE, Prot::READ | Prot::WRITE)
             .map_err(|error| format!("map heap failed: {error}"))?;
+        unicorn
+            .mem_write(HEAP_BASE, &vec![0u8; HEAP_SIZE as usize])
+            .map_err(|error| format!("clear heap failed: {error}"))?;
         unicorn
             .mem_map(STUB_BASE, STUB_SIZE, Prot::READ | Prot::EXEC)
             .map_err(|error| format!("map stubs failed: {error}"))?;
@@ -894,13 +900,13 @@ fn handle_import(uc: &mut Unicorn<'_, ()>, state: &mut EmulatorState, name: &str
             let _ = uc.reg_write(RegisterARM64::X0, 0);
         }
         "memcpy" | "memmove" | "__memcpy_chk" | "__memmove_chk" => {
-            let size = if name.contains("chk") { x3 } else { x2 };
+            let size = x2;
             let data = uc.mem_read_as_vec(x1, size as usize).unwrap_or_default();
             let _ = uc.mem_write(x0, &data);
             let _ = uc.reg_write(RegisterARM64::X0, x0);
         }
         "memset" | "__memset_chk" => {
-            let size = if name.contains("chk") { x3 } else { x2 };
+            let size = x2;
             let _ = uc.mem_write(x0, &vec![x1 as u8; size as usize]);
             let _ = uc.reg_write(RegisterARM64::X0, x0);
         }
