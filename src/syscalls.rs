@@ -27,6 +27,7 @@ pub mod nr {
     pub const IOCTL: u64 = 29;
     pub const MKDIRAT: u64 = 34;
     pub const UNLINKAT: u64 = 35;
+    pub const FACCESSAT: u64 = 48;
     pub const OPENAT: u64 = 56;
     pub const CLOSE: u64 = 57;
     pub const READ: u64 = 63;
@@ -35,12 +36,16 @@ pub mod nr {
     pub const FSTAT: u64 = 80;
     pub const EXIT: u64 = 93;
     pub const EXIT_GROUP: u64 = 94;
+    pub const FUTEX: u64 = 98;
     pub const NANOSLEEP: u64 = 101;
     pub const CLOCK_GETTIME: u64 = 113;
+    pub const PRCTL: u64 = 167;
     pub const GETTIMEOFDAY: u64 = 169;
     pub const GETPID: u64 = 172;
     pub const GETTID: u64 = 178;
+    pub const BRK: u64 = 214;
     pub const MMAP: u64 = 222;
     pub const MUNMAP: u64 = 215;
+    pub const CLONE: u64 = 220;
     pub const MPROTECT: u64 = 226;
 }

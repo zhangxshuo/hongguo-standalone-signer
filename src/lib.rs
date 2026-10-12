@@ -1,11 +1,14 @@
 mod elf;
 mod jni;
 mod signer;
+mod stubs;
 mod syscalls;
 
 use signer::{Emulator, SignRequest, SignResponse};
 use std::cell::RefCell;
 use std::ffi::{c_char, CStr, CString};
+
+pub use signer::{Emulator as PublicEmulator, SignRequest as PublicSignRequest, SignResponse as PublicSignResponse};
 
 thread_local! {
     static SIGNER: RefCell<Option<Emulator>> = RefCell::new(None);
@@ -46,7 +49,11 @@ pub unsafe extern "C" fn hongguo_sign(request_json: *const c_char) -> *mut c_cha
     SIGNER.with(|cell| {
         let mut guard = cell.borrow_mut();
         if guard.is_none() {
-            match Emulator::open(&parsed.so_path) {
+            match Emulator::open(
+                &parsed.so_path,
+                parsed.cpp_path.as_deref(),
+                parsed.cert_path.as_deref(),
+            ) {
                 Ok(emulator) => *guard = Some(emulator),
                 Err(error) => {
                     return into_c_string(
