@@ -1,3 +1,4 @@
+mod decrypt;
 mod elf;
 mod jni;
 mod signer;
@@ -9,6 +10,34 @@ use std::cell::RefCell;
 use std::ffi::{c_char, CStr, CString};
 
 pub use signer::{Emulator as PublicEmulator, SignRequest as PublicSignRequest, SignResponse as PublicSignResponse};
+
+#[no_mangle]
+pub unsafe extern "C" fn hongguo_decrypt_file(
+    spade_a_b64: *const c_char,
+    input_path: *const c_char,
+    output_path: *const c_char,
+    flag: i32,
+) -> i32 {
+    if spade_a_b64.is_null() || input_path.is_null() || output_path.is_null() {
+        return -1;
+    }
+    let spade = match unsafe { CStr::from_ptr(spade_a_b64) }.to_str() {
+        Ok(value) => value,
+        Err(_) => return -1,
+    };
+    let input = match unsafe { CStr::from_ptr(input_path) }.to_str() {
+        Ok(value) => value,
+        Err(_) => return -1,
+    };
+    let output = match unsafe { CStr::from_ptr(output_path) }.to_str() {
+        Ok(value) => value,
+        Err(_) => return -1,
+    };
+    match decrypt::decrypt_file(spade, input, output, flag) {
+        Ok(()) => 0,
+        Err(_) => -2,
+    }
+}
 
 thread_local! {
     static SIGNER: RefCell<Option<Emulator>> = RefCell::new(None);
